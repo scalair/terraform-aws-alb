@@ -1,31 +1,35 @@
 resource "aws_security_group" "alb_sg" {
   name        = var.security_group_name
-  description = "ALB security group for ${var.security_group_name}"
+  description = "ALB security group"
   vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
   tags        = var.tags
 }
 
 resource "aws_security_group_rule" "http_ingress" {
+  security_group_id = aws_security_group.alb_sg.id
+
   type        = "ingress"
   from_port   = 80
   to_port     = 80
   protocol    = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
-
-  security_group_id = aws_security_group.alb_sg.id
 }
 
 resource "aws_security_group_rule" "https_ingress" {
+  security_group_id = aws_security_group.alb_sg.id
+
   type        = "ingress"
   from_port   = 443
   to_port     = 443
   protocol    = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
-
-  security_group_id = aws_security_group.alb_sg.id
 }
 
+# Egress rules are generated for each target group backend port
+# Egress rules are allowed from ALB to the VPC private subnets
 resource "aws_security_group_rule" "backend_egress" {
+  security_group_id = aws_security_group.alb_sg.id
+
   for_each = toset(var.target_groups.*.backend_port)
 
   type        = "egress"
@@ -33,12 +37,28 @@ resource "aws_security_group_rule" "backend_egress" {
   to_port     = each.value
   protocol    = "tcp"
   cidr_blocks = data.terraform_remote_state.vpc.outputs.private_subnets_cidr_blocks
+}
 
-  security_group_id = aws_security_group.alb_sg.id
+module "s3_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "1.0.0"
+
+  create_bucket = var.logging_enabled
+
+  bucket = var.log_bucket_name
+  region = var.vpc_state_region
+  acl    = "private"
+
+  versioning = {
+    enabled = false
+  }
+
+  tags = var.tags
 }
 
 module "alb" {
-  source = "github.com/terraform-aws-modules/terraform-aws-alb?ref=v4.1.0"
+  source  = "terraform-aws-modules/alb/aws"
+  version = "4.1.0"
 
   load_balancer_name = var.load_balancer_name
   vpc_id             = data.terraform_remote_state.vpc.outputs.vpc_id
@@ -61,7 +81,7 @@ module "alb" {
   load_balancer_delete_timeout     = var.load_balancer_delete_timeout
   load_balancer_update_timeout     = var.load_balancer_update_timeout
   logging_enabled                  = var.logging_enabled
-  log_bucket_name                  = var.log_bucket_name
+  log_bucket_name                  = module.s3_bucket.this_s3_bucket_id
   log_location_prefix              = var.log_location_prefix
   target_groups                    = var.target_groups
   target_groups_count              = var.target_groups_count
