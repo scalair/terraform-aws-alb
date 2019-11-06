@@ -201,14 +201,3 @@ variable "target_groups_defaults" {
     slow_start                       = 0
   }
 }
-
-variable "logging_enabled" {
-  description = "Boolean to enable / disable access_logs"
-  type        = bool
-  default     = false
-}
-
-variable "log_bucket_name" {
-  description = " The S3 bucket name to store the logs in"
-  type        = string
-}
