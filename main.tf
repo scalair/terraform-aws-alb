@@ -1,3 +1,7 @@
+locals {
+  bucket_count = var.logging_enabled ? 1 : 0
+}
+
 resource "aws_security_group" "alb_sg" {
   name        = var.security_group_name
   description = "ALB security group"
@@ -25,8 +29,6 @@ resource "aws_security_group_rule" "https_ingress" {
   cidr_blocks = ["0.0.0.0/0"]
 }
 
-# Egress rules are generated for each target group backend port
-# Egress rules are allowed from ALB to the VPC private subnets
 resource "aws_security_group_rule" "backend_egress" {
   security_group_id = aws_security_group.alb_sg.id
 
@@ -39,17 +41,40 @@ resource "aws_security_group_rule" "backend_egress" {
   cidr_blocks = data.terraform_remote_state.vpc.outputs.private_subnets_cidr_blocks
 }
 
-module "s3_bucket" {
-  source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "1.0.0"
+data "aws_elb_service_account" "main" {
+  count = local.bucket_count
+}
 
-  create_bucket = var.logging_enabled
+resource "aws_s3_bucket_policy" "bucket_policy" {
+  count = local.bucket_count
+
+  bucket = aws_s3_bucket.bucket[local.bucket_count - 1].id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": ["s3:PutObject"],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::${aws_s3_bucket.bucket[local.bucket_count - 1].id}/*",
+      "Principal": {
+        "AWS": ["${data.aws_elb_service_account.main[local.bucket_count - 1].arn}"]
+      }
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_s3_bucket" "bucket" {
+  count = local.bucket_count
 
   bucket = var.log_bucket_name
-  region = var.vpc_state_region
   acl    = "private"
+  region = var.vpc_state_region
 
-  versioning = {
+  versioning {
     enabled = false
   }
 
@@ -81,7 +106,7 @@ module "alb" {
   load_balancer_delete_timeout     = var.load_balancer_delete_timeout
   load_balancer_update_timeout     = var.load_balancer_update_timeout
   logging_enabled                  = var.logging_enabled
-  log_bucket_name                  = module.s3_bucket.this_s3_bucket_id
+  log_bucket_name                  = aws_s3_bucket.bucket[local.bucket_count - 1].id
   log_location_prefix              = var.log_location_prefix
   target_groups                    = var.target_groups
   target_groups_count              = var.target_groups_count
