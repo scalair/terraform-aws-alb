@@ -78,6 +78,8 @@ resource "aws_s3_bucket" "bucket" {
     enabled = false
   }
 
+  force_destroy = true
+
   tags = var.tags
 }
 
