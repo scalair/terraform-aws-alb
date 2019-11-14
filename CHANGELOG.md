@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.1 - 2019-11-14
+### Fixed
+- Allow ALL for egress
+
 ## v1.1.0 - 2019-11-14
 ### Added
 - S3 bucket for ALB access logs
