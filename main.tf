@@ -32,13 +32,11 @@ resource "aws_security_group_rule" "https_ingress" {
 resource "aws_security_group_rule" "backend_egress" {
   security_group_id = aws_security_group.alb_sg.id
 
-  for_each = toset(var.target_groups.*.backend_port)
-
   type        = "egress"
-  from_port   = each.value
-  to_port     = each.value
-  protocol    = "tcp"
-  cidr_blocks = data.terraform_remote_state.vpc.outputs.private_subnets_cidr_blocks
+  from_port   = 0
+  to_port     = 0
+  protocol    = -1
+  cidr_blocks = ["0.0.0.0/0"]
 }
 
 data "aws_elb_service_account" "main" {
