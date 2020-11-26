@@ -70,7 +70,6 @@ resource "aws_s3_bucket" "bucket" {
 
   bucket = var.log_bucket_name
   acl    = "private"
-  region = var.vpc_state_region
 
   versioning {
     enabled = false
