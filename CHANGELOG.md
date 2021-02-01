@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.0.0 - 2021-02-02
+
+### Changed
+
+- BREAKING CHANGE: alb module refactoring and update to the latest version (5.0+)
+- BREAKING CHANGE: use security-group module instead of resource
+- BREAKING CHANGE: remove log bucket creation
+
 ## v1.2.0 - 2020-11-26
 
 ### Changed
