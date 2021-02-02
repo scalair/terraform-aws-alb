@@ -80,30 +80,28 @@ module "alb" {
         }
     ]
 
-    ingress_rules = [
-        {
-            from_port   = 80
-            to_port     = 80
-            protocol    = "tcp"
-            description = "HTTP"
-            cidr_blocks = "0.0.0.0/0"
-        },
-        {
-            from_port   = 443
-            to_port     = 443
-            protocol    = "tcp"
-            description = "HTTPS"
-            cidr_blocks = "0.0.0.0/0"
-        }
-    ]
-
-    egress_rules = [
-        {
-            from_port   = -1
-            to_port     = -1
-            protocol    = "-1"
-            description = "All protocols"
-            cidr_blocks = "0.0.0.0/0"
+    security_groups = [
+    {
+        name = "alb-dev-sg"
+            ingress = [
+                {
+                    from_port   = 80
+                    to_port     = 80
+                    protocol    = "tcp"
+                    description = "HTTP"
+                    cidr_blocks = "0.0.0.0/0"
+                },
+                {
+                    from_port   = 443
+                    to_port     = 443
+                    protocol    = "tcp"
+                    description = "HTTPS"
+                    cidr_blocks = "0.0.0.0/0"
+                }
+            ]
+            egress = [
+                { rule = "all-all", cidr_blocks = "0.0.0.0/0" }
+            ]
         }
     ]
 

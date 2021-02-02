@@ -63,18 +63,14 @@ output "target_group_names" {
   value       = module.alb.target_group_names
 }
 
+output "target_group_attachments" {
+  value = aws_lb_target_group_attachment.alb_tg_attachment
+}
+
 output "alb_route53_records" {
   value = aws_route53_record.alb_record
 }
 
-output "alb_security_group_name" {
-  value = module.security_group.this_security_group_name
-}
-
-output "alb_security_group_id" {
-  value = module.security_group.this_security_group_id
-}
-
-output "alb_security_group_vpc_id" {
-  value = module.security_group.this_security_group_vpc_id
+output "alb_security_groups" {
+  value = module.security_group
 }

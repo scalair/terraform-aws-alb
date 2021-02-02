@@ -55,21 +55,14 @@ variable "listener_ssl_policy_default" {
   default     = "ELBSecurityPolicy-TLS-1-2-2017-01"
 }
 
-variable "security_group_name" {
-  description = "Name of the security group associated to the load balancer."
-  type        = string
-}
-
-variable "ingress_rules" {
-  description = "List of ingress rules attached to the security group."
-  type        = list
-  default     = []
-}
-
-variable "egress_rules" {
-  description = "List of egress rules attached to the security group."
-  type        = list
-  default     = []
+variable "security_groups" {
+  description = "Security groups associated to the load balancer."
+  type = list(object({
+    name    = string
+    ingress = list(map(string))
+    egress  = list(map(string))
+  }))
+  default = []
 }
 
 variable "aliases" {
