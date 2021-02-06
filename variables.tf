@@ -15,25 +15,25 @@ variable "subnets_ids" {
 
 variable "http_listeners" {
   description = "A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target_group_index."
-  type        = list
+  type        = any
   default     = []
 }
 
 variable "https_listeners" {
   description = "A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate_arn. Optional key/values: ssl_policy (defaults to ELBSecurityPolicy-2016-08), target_group_index."
-  type        = list
+  type        = any
   default     = []
 }
 
 variable "https_listener_rules" {
   description = "A list of HTTPS Listener rules."
-  type        = list
+  type        = any
   default     = []
 }
 
 variable "target_groups" {
   description = "A list of target groups."
-  type        = list
+  type        = any
   default     = []
 }
 
